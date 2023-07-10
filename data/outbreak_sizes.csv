@@ -1,0 +1,131 @@
+Facility,Date,Facility_Outbreak,outbreak_sizes
+Avenal State Prison (ASP),2020-05-19,Avenal State Prison (ASP) Outbreak 1,31041
+California Correctional Center (CCC),2020-06-21,California Correctional Center (CCC) Outbreak 1,6590
+California Correctional Center (CCC),2020-09-04,California Correctional Center (CCC) Outbreak 2,20
+California Correctional Center (CCC),2020-09-24,California Correctional Center (CCC) Outbreak 3,10
+California Correctional Center (CCC),2020-10-17,California Correctional Center (CCC) Outbreak 4,10
+California Correctional Center (CCC),2020-11-17,California Correctional Center (CCC) Outbreak 5,6096
+California Correctional Institution (CCI),2020-06-04,California Correctional Institution (CCI) Outbreak 1,10
+California Correctional Institution (CCI),2020-06-19,California Correctional Institution (CCI) Outbreak 2,13410
+California Institution for Men (CIM),2020-11-13,California Institution for Men (CIM) Outbreak 1,120
+California Institution for Men (CIM),2020-12-20,California Institution for Men (CIM) Outbreak 2,720
+California Institution for Men (CIM),2021-01-24,California Institution for Men (CIM) Outbreak 3,8
+California Institution for Women (CIW),2020-05-04,California Institution for Women (CIW) Outbreak 1,1620
+California Institution for Women (CIW),2020-06-25,California Institution for Women (CIW) Outbreak 2,10
+California Institution for Women (CIW),2020-07-08,California Institution for Women (CIW) Outbreak 3,1890
+California Institution for Women (CIW),2020-09-22,California Institution for Women (CIW) Outbreak 4,10
+California Institution for Women (CIW),2020-10-17,California Institution for Women (CIW) Outbreak 5,10
+California Institution for Women (CIW),2020-11-09,California Institution for Women (CIW) Outbreak 6,10
+California Institution for Women (CIW),2020-11-25,California Institution for Women (CIW) Outbreak 7,820
+California Institution for Women (CIW),2021-01-07,California Institution for Women (CIW) Outbreak 8,350
+California Medical Facility (CMF),2020-07-03,California Medical Facility (CMF) Outbreak 1,10
+California Medical Facility (CMF),2020-07-16,California Medical Facility (CMF) Outbreak 2,30
+California Medical Facility (CMF),2020-08-04,California Medical Facility (CMF) Outbreak 3,30
+California Medical Facility (CMF),2020-08-25,California Medical Facility (CMF) Outbreak 4,20
+California Medical Facility (CMF),2020-09-22,California Medical Facility (CMF) Outbreak 5,50
+California Medical Facility (CMF),2020-11-25,California Medical Facility (CMF) Outbreak 6,40
+California Medical Facility (CMF),2020-12-12,California Medical Facility (CMF) Outbreak 7,6834
+California Men's Colony (CMC),2020-04-21,California Men's Colony (CMC) Outbreak 1,100
+California Men's Colony (CMC),2020-07-31,California Men's Colony (CMC) Outbreak 2,2940
+California Men's Colony (CMC),2020-10-27,California Men's Colony (CMC) Outbreak 3,10
+California Men's Colony (CMC),2020-11-09,California Men's Colony (CMC) Outbreak 4,20
+California Men's Colony (CMC),2020-12-01,California Men's Colony (CMC) Outbreak 5,21318
+California Rehabilitation Center (CRC),2020-06-09,California Rehabilitation Center (CRC) Outbreak 1,16680
+California Rehabilitation Center (CRC),2020-12-05,California Rehabilitation Center (CRC) Outbreak 2,3118
+California State Prison Corcoran (COR),2020-05-30,California State Prison Corcoran (COR) Outbreak 1,3600
+California State Prison Corcoran (COR),2020-10-04,California State Prison Corcoran (COR) Outbreak 2,20
+California State Prison Corcoran (COR),2020-11-01,California State Prison Corcoran (COR) Outbreak 3,6092
+California State Prison Los Angeles County (LAC),2020-05-31,California State Prison Los Angeles County (LAC) Outbreak 1,10
+California State Prison Los Angeles County (LAC),2020-07-10,California State Prison Los Angeles County (LAC) Outbreak 2,70
+California State Prison Los Angeles County (LAC),2020-07-31,California State Prison Los Angeles County (LAC) Outbreak 3,10
+California State Prison Los Angeles County (LAC),2020-08-13,California State Prison Los Angeles County (LAC) Outbreak 4,580
+California State Prison Los Angeles County (LAC),2020-10-22,California State Prison Los Angeles County (LAC) Outbreak 5,20
+California State Prison Los Angeles County (LAC),2020-11-09,California State Prison Los Angeles County (LAC) Outbreak 6,12988
+California State Prison Sacramento (SAC),2020-06-15,California State Prison Sacramento (SAC) Outbreak 1,40
+California State Prison Sacramento (SAC),2020-07-18,California State Prison Sacramento (SAC) Outbreak 2,90
+California State Prison Sacramento (SAC),2020-09-03,California State Prison Sacramento (SAC) Outbreak 3,30
+California State Prison Sacramento (SAC),2020-09-15,California State Prison Sacramento (SAC) Outbreak 4,30
+California State Prison Sacramento (SAC),2020-10-25,California State Prison Sacramento (SAC) Outbreak 5,10
+California State Prison Sacramento (SAC),2020-11-25,California State Prison Sacramento (SAC) Outbreak 6,2706
+California State Prison Solano (SOL),2020-06-10,California State Prison Solano (SOL) Outbreak 1,10
+California State Prison Solano (SOL),2020-07-11,California State Prison Solano (SOL) Outbreak 2,10
+California State Prison Solano (SOL),2020-08-29,California State Prison Solano (SOL) Outbreak 3,30
+California State Prison Solano (SOL),2020-09-17,California State Prison Solano (SOL) Outbreak 4,20
+California State Prison Solano (SOL),2020-11-09,California State Prison Solano (SOL) Outbreak 5,10123
+Calipatria State Prison (CAL),2020-06-17,Calipatria State Prison (CAL) Outbreak 1,20
+Calipatria State Prison (CAL),2020-07-09,Calipatria State Prison (CAL) Outbreak 2,240
+Calipatria State Prison (CAL),2020-08-07,Calipatria State Prison (CAL) Outbreak 3,10
+Calipatria State Prison (CAL),2020-11-09,Calipatria State Prison (CAL) Outbreak 4,9996
+Centinela State Prison (CEN),2020-05-23,Centinela State Prison (CEN) Outbreak 1,20
+Centinela State Prison (CEN),2020-06-04,Centinela State Prison (CEN) Outbreak 2,50
+Centinela State Prison (CEN),2020-06-21,Centinela State Prison (CEN) Outbreak 3,300
+Centinela State Prison (CEN),2020-08-15,Centinela State Prison (CEN) Outbreak 4,220
+Centinela State Prison (CEN),2020-11-01,Centinela State Prison (CEN) Outbreak 5,7838
+Central California Women's Facility (CCWF),2020-07-19,Central California Women's Facility (CCWF) Outbreak 1,160
+Central California Women's Facility (CCWF),2020-12-01,Central California Women's Facility (CCWF) Outbreak 2,7324
+Chuckawalla Valley State Prison (CVSP),2020-05-14,Chuckawalla Valley State Prison (CVSP) Outbreak 1,10120
+Chuckawalla Valley State Prison (CVSP),2020-07-06,Chuckawalla Valley State Prison (CVSP) Outbreak 2,420
+Chuckawalla Valley State Prison (CVSP),2020-09-10,Chuckawalla Valley State Prison (CVSP) Outbreak 3,3430
+Chuckawalla Valley State Prison (CVSP),2020-10-22,Chuckawalla Valley State Prison (CVSP) Outbreak 4,3830
+Correctional Training Facility (CTF),2020-07-31,Correctional Training Facility (CTF) Outbreak 1,26708
+Deuel Vocational Institution (DVI),2020-08-25,Deuel Vocational Institution (DVI) Outbreak 1,10
+Deuel Vocational Institution (DVI),2020-10-10,Deuel Vocational Institution (DVI) Outbreak 2,20
+Deuel Vocational Institution (DVI),2020-11-13,Deuel Vocational Institution (DVI) Outbreak 3,3251
+Folsom State Prison (FOL),2020-07-05,Folsom State Prison (FOL) Outbreak 1,10
+Folsom State Prison (FOL),2020-07-22,Folsom State Prison (FOL) Outbreak 2,13420
+Folsom State Prison (FOL),2020-11-25,Folsom State Prison (FOL) Outbreak 3,110
+Folsom State Prison (FOL),2020-12-24,Folsom State Prison (FOL) Outbreak 4,30
+Folsom State Prison (FOL),2021-01-16,Folsom State Prison (FOL) Outbreak 5,30
+High Desert State Prison (HDSP),2020-06-24,High Desert State Prison (HDSP) Outbreak 1,50
+High Desert State Prison (HDSP),2020-08-06,High Desert State Prison (HDSP) Outbreak 2,10
+High Desert State Prison (HDSP),2020-09-01,High Desert State Prison (HDSP) Outbreak 3,10
+High Desert State Prison (HDSP),2020-11-09,High Desert State Prison (HDSP) Outbreak 4,19756
+Ironwood State Prison (ISP),2020-06-09,Ironwood State Prison (ISP) Outbreak 1,810
+Ironwood State Prison (ISP),2020-09-24,Ironwood State Prison (ISP) Outbreak 2,300
+Ironwood State Prison (ISP),2020-11-09,Ironwood State Prison (ISP) Outbreak 3,40
+Ironwood State Prison (ISP),2020-12-05,Ironwood State Prison (ISP) Outbreak 4,10581
+Kern Valley State Prison (KVSP),2020-06-15,Kern Valley State Prison (KVSP) Outbreak 1,30
+Kern Valley State Prison (KVSP),2020-07-15,Kern Valley State Prison (KVSP) Outbreak 2,50
+Kern Valley State Prison (KVSP),2020-08-13,Kern Valley State Prison (KVSP) Outbreak 3,70
+Kern Valley State Prison (KVSP),2020-09-28,Kern Valley State Prison (KVSP) Outbreak 4,30
+Kern Valley State Prison (KVSP),2020-11-15,Kern Valley State Prison (KVSP) Outbreak 5,8636
+Mule Creek State Prison (MCSP),2020-07-27,Mule Creek State Prison (MCSP) Outbreak 1,440
+Mule Creek State Prison (MCSP),2020-09-24,Mule Creek State Prison (MCSP) Outbreak 2,10
+Mule Creek State Prison (MCSP),2020-11-22,Mule Creek State Prison (MCSP) Outbreak 3,16261
+North Kern State Prison (NKSP),2020-06-04,North Kern State Prison (NKSP) Outbreak 1,50
+North Kern State Prison (NKSP),2020-07-02,North Kern State Prison (NKSP) Outbreak 2,20
+North Kern State Prison (NKSP),2020-07-13,North Kern State Prison (NKSP) Outbreak 3,20
+North Kern State Prison (NKSP),2020-08-17,North Kern State Prison (NKSP) Outbreak 4,790
+North Kern State Prison (NKSP),2020-11-01,North Kern State Prison (NKSP) Outbreak 5,10
+North Kern State Prison (NKSP),2020-11-13,North Kern State Prison (NKSP) Outbreak 6,7810
+Pelican Bay State Prison (PBSP),2020-06-27,Pelican Bay State Prison (PBSP) Outbreak 1,10
+Pelican Bay State Prison (PBSP),2020-10-10,Pelican Bay State Prison (PBSP) Outbreak 2,60
+Pelican Bay State Prison (PBSP),2020-11-15,Pelican Bay State Prison (PBSP) Outbreak 3,2028
+Pleasant Valley State Prison (PVSP),2020-07-18,Pleasant Valley State Prison (PVSP) Outbreak 1,10
+Pleasant Valley State Prison (PVSP),2020-08-11,Pleasant Valley State Prison (PVSP) Outbreak 2,10
+Pleasant Valley State Prison (PVSP),2020-09-10,Pleasant Valley State Prison (PVSP) Outbreak 3,10
+Pleasant Valley State Prison (PVSP),2020-09-24,Pleasant Valley State Prison (PVSP) Outbreak 4,10
+Pleasant Valley State Prison (PVSP),2020-10-10,Pleasant Valley State Prison (PVSP) Outbreak 5,19832
+RJ Donovan Correctional Facility (RJD),2020-06-29,RJ Donovan Correctional Facility (RJD) Outbreak 1,10
+RJ Donovan Correctional Facility (RJD),2020-07-29,RJ Donovan Correctional Facility (RJD) Outbreak 2,30
+RJ Donovan Correctional Facility (RJD),2020-10-10,RJ Donovan Correctional Facility (RJD) Outbreak 3,10
+RJ Donovan Correctional Facility (RJD),2020-11-21,RJ Donovan Correctional Facility (RJD) Outbreak 4,10
+RJ Donovan Correctional Facility (RJD),2020-12-06,RJ Donovan Correctional Facility (RJD) Outbreak 5,10046
+Salinas Valley State Prison (SVSP),2020-06-21,Salinas Valley State Prison (SVSP) Outbreak 1,30
+Salinas Valley State Prison (SVSP),2020-08-10,Salinas Valley State Prison (SVSP) Outbreak 2,30
+Salinas Valley State Prison (SVSP),2020-08-28,Salinas Valley State Prison (SVSP) Outbreak 3,1250
+Salinas Valley State Prison (SVSP),2020-11-21,Salinas Valley State Prison (SVSP) Outbreak 4,4659
+San Quentin State Prison (SQ),2020-06-03,San Quentin State Prison (SQ) Outbreak 1,22360
+San Quentin State Prison (SQ),2020-08-30,San Quentin State Prison (SQ) Outbreak 2,10
+San Quentin State Prison (SQ),2020-09-17,San Quentin State Prison (SQ) Outbreak 3,30
+San Quentin State Prison (SQ),2020-09-30,San Quentin State Prison (SQ) Outbreak 4,20
+San Quentin State Prison (SQ),2020-11-01,San Quentin State Prison (SQ) Outbreak 5,20
+San Quentin State Prison (SQ),2020-11-28,San Quentin State Prison (SQ) Outbreak 6,160
+San Quentin State Prison (SQ),2021-01-30,San Quentin State Prison (SQ) Outbreak 7,3
+Sierra Conservation Center (SCC),2020-05-24,Sierra Conservation Center (SCC) Outbreak 1,10
+Sierra Conservation Center (SCC),2020-08-10,Sierra Conservation Center (SCC) Outbreak 2,180
+Sierra Conservation Center (SCC),2020-11-09,Sierra Conservation Center (SCC) Outbreak 3,10
+Sierra Conservation Center (SCC),2020-11-25,Sierra Conservation Center (SCC) Outbreak 4,12259
+Valley State Prison (VSP),2020-08-10,Valley State Prison (VSP) Outbreak 1,30
+Valley State Prison (VSP),2020-08-29,Valley State Prison (VSP) Outbreak 2,16737
+Wasco State Prison (WSP),2020-06-02,Wasco State Prison (WSP) Outbreak 1,13562
