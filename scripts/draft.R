@@ -25,9 +25,9 @@ infectiousPeriod <- 7    # days (from literature)
 disease_params <- function(R0,                         # basic reproduction number, must be specified
                            gamma = 1/infectiousPeriod, # rate of removal
                            sigma = 1/latentPeriod)     # rate of progression
-{
+  {
   return(as.list(environment()))
-}
+  }
 
 ## Function that makes a vector of initial state variable conditions ##
 ## N0 (initial population value) as argument
@@ -135,7 +135,7 @@ objFXN <- function(fit.params                        # paramters to fit
                    , tseq) {                 
   parms <- subsParms(fit.params, fixed.params)
   nllikelihood(parms, obsDat = obsDat, init=init, tseq = tseq)  # then nllikelihood
-}
+  }
 
 # Test the functions with simulated data ----------------------------------
 
@@ -180,7 +180,7 @@ df <- rbind(modDat = modDat %>%
 ggplot(df, aes(x = time, y = inc_rate, color = variable))+
   geom_line() +
   geom_point(data = myDat, mapping=aes(x = time, y=samp_inc_rate), color = "black") +
-  #  geom_ribbon(data = myDat, mapping=aes(x = time, y = samp_inc_rate, ymin=lci, ymax=uci), color = NA, fill = "black", alpha = 0.2) +
+#  geom_ribbon(data = myDat, mapping=aes(x = time, y = samp_inc_rate, ymin=lci, ymax=uci), color = NA, fill = "black", alpha = 0.2) +
   labs(title = "Comparing incidence rates of true and fitted models",
        x= "time [days]",
        y= "incidence rate") +
@@ -205,7 +205,7 @@ ggplot(df, aes(x = time, y = incidence, color = variable))+
 all.data <- read_csv("new_cases_per_day.csv")
 
 ## Extract one outbreak: Avenal State Prison (ASP) Outbreak 1
-fixed.N0 <- 4286  # initial population of prison
+fixed.N0 <- 4200  # initial population of prison
 ASP.1.data <- all.data %>%
   filter(Facility_Outbreak == "Avenal State Prison (ASP) Outbreak 1") %>%
   select(Date, Daily_New_Cases) %>% 
@@ -268,13 +268,13 @@ ASP.1.data.cut <- ASP.1.data %>%
 time.out3 <- seq(0, 60, 1)
 
 prison.estim.cut <- optim(par = c(log_R0 = log(1))
-                          , objFXN
-                          , fixed.params = disease_params()  # defined at top of script
-                          , obsDat = ASP.1.data.cut
-                          , init = init.prison
-                          , tseq = time.out3
-                          , control = list(trace = 3, maxit = 150)
-                          , method = "SANN")
+                      , objFXN
+                      , fixed.params = disease_params()  # defined at top of script
+                      , obsDat = ASP.1.data.cut
+                      , init = init.prison
+                      , tseq = time.out3
+                      , control = list(trace = 3, maxit = 150)
+                      , method = "SANN")
 
 
 ## View the R0 estimate
@@ -287,11 +287,11 @@ prison.ts.cut <- simEpidemic(init.prison, time.out3, seixc, disease_params(R0 = 
 ## Visually compare incidence rates of the model and actual data
 
 df2 <- rbind(ASP.1.data.cut %>% 
-               select(-Date) %>% 
-               mutate(variable = "ASP.1.data.cut"),
-             prison.ts.cut %>% 
-               select(incidence, inc_rate, time, N) %>% 
-               mutate(variable = "prison.ts.cut"))
+              select(-Date) %>% 
+              mutate(variable = "ASP.1.data.cut"),
+            prison.ts.cut %>% 
+              select(incidence, inc_rate, time, N) %>% 
+              mutate(variable = "prison.ts.cut"))
 
 ggplot(df2, aes(x = time, y = inc_rate, color = variable))+
   geom_line() +
