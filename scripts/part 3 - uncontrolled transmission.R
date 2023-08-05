@@ -1,41 +1,55 @@
-require(boot); require(deSolve); require(ellipse);
+##################################################################################
+##################################################################################
+# an R script to estimate R0 using an SEIR model
+#
+# Project: COVID in Prisons, ICI3D MMED 2023
+#
+##################################################################################
 
-# Parameters ----
+# Load packages -----------------------------------------------------------
 
-## Parameters for SEIX model
-## to be passed to disease_params()
-R0.estim <- 1.5          # estimated basic reproduction number (placeholder)
+require(boot); require(deSolve); require(ellipse); require(tidyverse); require(data.table)
+
+# Parameters --------------------------------------------------------------
+
+## Parameters for SEIR model
+## to be passed as default parameters to disease_params()
 latentPeriod <- 3        # days (from literature)
 infectiousPeriod <- 7    # days (from literature)
 
-## Parameters for initial conditions of state variables
-## to be passed to init_cond()
-N0.estim <- 1000         # initial population
+# Functions ---------------------------------------------------------------
 
-# Functions ----
+## Function that makes a list of disease parameters with default values ##
+## Default values are defined above in the Parameters section
 
-## Function that makes a list of disease parameters with default values
-disease_params <- function(R0 = R0.estim,   # transmission coefficient
+disease_params <- function(R0,                         # basic reproduction number, must be specified
                            gamma = 1/infectiousPeriod, # rate of removal
-                           sigma = 1/latentPeriod     # rate of progression
-){
+                           sigma = 1/latentPeriod)     # rate of progression
+{
   return(as.list(environment()))
 }
 
-## Function that makes a vector of initial state variable conditions with N0 
-## as argument
+## Function that makes a vector of initial state variable conditions ##
+## N0 (initial population value) as argument
 
 init_cond <- function(N0) {
   init <- c(S = N0 - 1,  # susceptible
             E = 1,       # exposed
             I = 0,       # infected
-            X = 0)       # removed
+            X = 0,       # removed
+            C = 0)       # cumulative cases
   
   return(init)
 }
 
-## SEIX model
-seix <- function(tt, yy, parms) with(c(parms,as.list(yy)), {
+## Function defining the SEIR (SEIXC) model ##
+## 'X' is used instead of 'R' to avoid confusion with R, the reproduction number
+## 'C' is an added compartment that calculates the cumulative infected cases per
+## time step The difference between 'C' at time t and t-1 will be the incidence
+##
+## Overall, this model is a standard deterministic SEIR model with no births,
+## deaths, introductions, replenishment of susceptibles, etc.
+seixc <- function(tt, yy, parms) with(c(parms,as.list(yy)), {
   
   ## State variables are: S, E, I, X
   N <- S + E + I + X                ## total population
@@ -43,55 +57,66 @@ seix <- function(tt, yy, parms) with(c(parms,as.list(yy)), {
   forceOfInfection <- beta*I/N   
   
   ## state variable derivatives (ODE system)
-  deriv <- rep(NA,4)
+  deriv <- rep(NA,5)
   deriv[1] <-	-forceOfInfection*S                    # dSdt
   deriv[2] <-	forceOfInfection*S - sigma*E           # dEdt
   deriv[3] <-	sigma*E - gamma*I                      # dIdt
   deriv[4] <-	gamma*I                                # dXdt
+  deriv[5] <- sigma*E                                # cumulative cases
   return(list(deriv))
 })
 
-## Function to run the deterministic model simulation, based on the ODE system defined in seix().
-simEpidemic <- function(init, tseq, modFunction=seix, parms = disease_params()) {
+## Function to run the deterministic model simulation, based on the ODE system defined in seixc() ##
+## This function outputs a dataframe with the following variables:
+## time - timestep
+## S, E, I, X, C - number of individuals in each compartment per timestep
+## N - total population
+## incidence - the number of incident cases, calculated as the difference in C over each time step
+## inc_rate - the incidence rate (incidence/N) per time step
+simEpidemic <- function(init, tseq, modFunction=seixc, parms = disease_params()) {
   modDat <- as.data.frame(lsoda(init, tseq, modFunction, parms=parms))
-  modDat$N <- rowSums(modDat[, c('S','E','I','X')]) # total outbreak population
-  modDat$PI <- with(modDat, (E+I)/N)                # prevalence of infection (E + I)
-  modDat$PD <- with(modDat, I/N)                    # prevalence of disease (I only)
-  modDat$CI <- cumsum(modDat[,'I'])                 # cumulative I
+  modDat$N <- rowSums(modDat[, c('S','E','I','X')])  # total outbreak population
+  modDat$incidence <- c(0,diff(modDat$C))           # incident cases (difference in S over each time step)
+  modDat$inc_rate <- with(modDat, incidence/N)       # incidence rate based on total population N
   return(modDat)
 }
 
-## Function to 'sample' the population:
-## From a simulated epidemic, measure prevalence at several time points by drawing
+## Function to create simulated data using the model ##
+## From a simulated epidemic, measure the incidence proportion at several time points by drawing
 ## cross-sectional samples of individuals at each time, testing them, and then calculating sample
-## prevalence and associated binomial confidence intervals
+## incidence proportion and associated binomial confidence intervals. The incidence per time
+## step will then be calculated from the difference in exposed between each time step.
+##
+## This function be used to generate simulated data for testing the model and optimization functions.
 
 sampleEpidemic <- function(modDat                                      # Simulated "data" which we treat as real 
                            , sampleDates = seq(1, 365, by = 5)         # Sample every 5 days for 1 year
-                           , numN = rep(80, length(sampleDates))       # Number of individuals sampled at each time point
+                           , N = rep(1000, length(sampleDates))     # Number of individuals sampled at each time point
 ){
-  prev_at_sample_times <- modDat[modDat$time %in% sampleDates, 'PI']
-  cases <- rbinom(length(numN), numN, prev_at_sample_times)
-  lci <- mapply(function(x,n) binom.test(x,n)$conf.int[1], x = cases, n = numN)
-  uci <- mapply(function(x,n) binom.test(x,n)$conf.int[2], x = cases, n = numN)    
-  return(data.frame(time = sampleDates, cases, numN, sampPrev =  cases/numN,
+  inc_rate_at_sample_times <- modDat[modDat$time %in% sampleDates, 'inc_rate']
+  inc <- rbinom(length(N), N, inc_rate_at_sample_times)
+  lci <- mapply(function(x,n) binom.test(x,n)$conf.int[1], x = inc, n = N)
+  uci <- mapply(function(x,n) binom.test(x,n)$conf.int[2], x = inc, n = N)    
+  return(data.frame(time = sampleDates, incidence = inc, N, samp_inc_rate =  inc/N,
                     lci = lci, uci = uci))
 }
 
-## negative loglikelihood
-## uses prevalence as basis for matching model-generated data to real data
+## Function to calculate negative log-likelihood ## 
+## This will be passed to the objective function, which will be passed to optim()
 nllikelihood <- function(parms, obsDat, init, tseq) {
   modDat <- simEpidemic(init, parms=parms, tseq)
   ## What are the rows from our simulation at which we have observed data?
   matchedTimes <- modDat$time %in% obsDat$time
-  nlls <- -dbinom(obsDat$cases,                   # infected cases of observed data
-                  obsDat$numN,                    # total population at timepoints of observed data
-                  prob = modDat$PI[matchedTimes], # Prevalence from model data
+  nlls <- -dbinom(obsDat$incidence,                     # incident cases of observed data
+                  obsDat$N,                             # total population at timepoints of observed data
+                  prob = modDat$inc_rate[matchedTimes], # incidence rate from model data
                   log = T)
   return(sum(nlls))
 }
 
-## Combine guess (fit parameters) and fixed parameters
+## Function to combine guess (fit parameters) and fixed parameters ##
+## This will be used within the objective function for calculating the least
+## squares statistic.
 subsParms <- function(fit.params, fixed.params=disease_params())
   within(fixed.params, {
     loggedParms <- names(fit.params)[grepl('log_', names(fit.params))]
@@ -101,85 +126,33 @@ subsParms <- function(fit.params, fixed.params=disease_params())
     rm(nm, loggedParms, unloggedParms)
   })
 
-## Make likelihood a function of fixed and fitted parameters
+## Objective function to be passed to optim() for parameter estimation ##
+## Make the objective function a function of fixed and fitted parameters
 objFXN <- function(fit.params                        # paramters to fit
                    , fixed.params = disease_params() # fixed paramters
                    , obsDat                          # observed data
                    , init
                    , tseq) {                 
   parms <- subsParms(fit.params, fixed.params)
-  nllikelihood(parms, obsDat = obsDat, init=init, tseq = tseq)  # then call likelihood
+  nllikelihood(parms, obsDat = obsDat, init=init, tseq = tseq)  # then nllikelihood
 }
 
-# Plotting code ----
-
-# Initial plots
-
-## Plot model prevalence through time:
-# par(bty='n', lwd = 2)
-# with(modDat, plot(time, PI, xlab = '', ylab = 'prevalence', type = 'l', ylim = c(0,0.4), col='black', las = 1))
-# points(myDat$time, myDat$sampPrev,
-#         col = 'red', pch = 20, cex = .5) # Plot sample prevalence at each time point
-# arrows(myDat$time, myDat$uci, myDat$time, myDat$lci, col = 'red', len = .025, angle = 90, code = 3) # Plot 95% CIs around the sample prevalences
-
-# ## Plot SEIX model:
-# 
-# modDat.long <- melt(as.data.table(modDat), id.vars = 'time')
-# 
-# ## SEIX plot
-# 
-# (modDat.long %>%
-#     filter(variable %in% c('S', 'E', 'I', 'X')) %>% 
-#     ggplot()
-#   + aes(x = time, y = value, color = variable, linetype = variable)
-#   + geom_line()
-#   + labs(title = "SEIX model time series",
-#          x = "time [days]",
-#          y = "cases"))
-# 
-# ## Prevalence of Infection, Disease
-# 
-# (ggplot(modDat.long[variable %in% c('PI', 'PD')])
-#   + aes(x = time, y = value)
-#   + geom_line(aes(color = variable))
-#   + scale_color_discrete(labels = c("Infection","Disease"))
-#   + labs(title = "Prevalence of infection and disease",
-#          x = "time [days]",
-#          y = "prevalence")
-#   + geom_point(data = myDat, aes(x = time, y = sampPrev), color = "black")
-# )
-
-# ## Plot MLE fit time series
-# 
-# par(bty='n', lwd = 2, las = 1)
-# maxPI <- max(modDat$PI)
-# ymax = maxPI + maxPI/(maxPI*100)
-# 
-# ### Model data
-# with(modDat, plot(time, PI, xlab = '', ylab = 'prevalence', type = 'l', ylim = c(0,ymax), col='red'))
-# 
-# ### Fit data (with parameters estimated from "real" data)
-# fitDat <- simEpidemic(init, parms = subsParms(optim.vals$par, trueParms))
-# with(fitDat, lines(time, PI, col='blue'))
-# 
-# ### Observed data (from "real" data)
-# points(myDat$time, myDat$sampPrev, col = 'red', pch = 16, cex = 0.5)
-# # arrows(myDat$time, myDat$uci, myDat$time, myDat$lci, col = 'red', len = .025, angle = 90, code = 3)
-# legend("topleft", c('truth', 'observed', 'fitted'), lty = c(1, NA, 1), pch = c(NA,16,NA),
-#        col = c('red', 'red', 'blue'), bty = 'n')
-
-# Test functions ----
+# Test the functions with simulated data ----------------------------------
 
 ## Generate simulated data by sampling from model-generated data
-trueParms <- disease_params()                  # Default model parameters
-init.pop <- init_cond(N0 = 1000)
-time.out <- seq(0, 365, 1)  # range of timepoints for model time series
-modDat <- simEpidemic(init.pop, parms = trueParms, tseq = time.out) # Simulated epidemic (underlying process)
-set.seed(1)                            # Initiate the random number generator
-myDat <- sampleEpidemic(modDat)        # Simulate data from the sampling process (substitute to REAL DATA)
+trueParms <- disease_params(R0 = 1.5)                  # Default model parameters
+init.pop <- init_cond(N0 = 1000)               # initial population of 1000 people
+time.out <- seq(0, 365, 1)                     # range of timepoints for model time series
 
-## Optim to estimate R0
-## init.pars <- c(log_R0 = log(1))
+modDat <- simEpidemic(init.pop, parms = trueParms, tseq = time.out) # Simulated epidemic (underlying process)
+ggplot(modDat, aes(x = time, y = incidence)) + geom_col()           # quick look at the model incidence
+
+set.seed(1)                                           # Initiate the random number generator
+myDat <- sampleEpidemic(modDat)                       # Simulate data from the sampling process (substitute to REAL DATA)
+ggplot(myDat, aes(x=time, y=incidence)) + geom_col()  # quick look at the simulated incidence
+
+## Use optim to estimate R0
+## Use only SANN for now, for testing purposes
 optim.vals <- optim(par = c(log_R0 = log(1))
                     , objFXN
                     , fixed.params = disease_params()  # defined at top of script
@@ -190,86 +163,149 @@ optim.vals <- optim(par = c(log_R0 = log(1))
                     , method = "SANN")
 
 
-## R0 estimate
+## View the R0 estimate
 exp(unname(optim.vals$par))  # estimate from simulated data
 trueParms['R0']              # true value
+## The true R0 and estimated R0 are close in value
 
-## Plot
-
+## Simulate an epidemic using the R0 estimate (fitDat)
 fitDat <- simEpidemic(init = init.pop, tseq = time.out, parms = subsParms(optim.vals$par, trueParms))
 
+## Visually compare incidence rates of fitDat and modDat (the true underlying process)
 df <- rbind(modDat = modDat %>% 
               mutate(variable = "modDat"),
             fitDat = fitDat %>% 
               mutate(variable = "fitDat"))
 
-myDat %>% 
-  filter(sampPrev < 0.065) -> myDat2
-
-ggplot(df, aes(x = time, y = PI, color = variable))+
+ggplot(df, aes(x = time, y = inc_rate, color = variable))+
   geom_line() +
-  geom_point(data = myDat2, mapping=aes(x = time, y=sampPrev), color = "black") +
-  labs(title = "Simulated data",
+  geom_point(data = myDat, mapping=aes(x = time, y=samp_inc_rate), color = "black") +
+  #  geom_ribbon(data = myDat, mapping=aes(x = time, y = samp_inc_rate, ymin=lci, ymax=uci), color = NA, fill = "black", alpha = 0.2) +
+  labs(title = "Comparing incidence rates of true and fitted models",
        x= "time [days]",
-       y= "prevalence") +
-  scale_color_discrete(labels = c("Fitted","Truth")) +
-  theme(text = element_text(size =18))
+       y= "incidence rate") +
+  scale_color_discrete(labels = c("Fitted","Truth"))
+#  theme(text = element_text(size = 18))
 
-# Estimate R0 from data ----
+## Visually compare incidence (cases) of fitDat and modDat (the true underlying process)
 
-prison.data <- read_csv("Infectous_timeseries.csv")
-fixed.N0 <- 6500  # initial population of prison
-prison.data <- prison.data %>%
-  select(day, I) %>% 
-  rename(time = day, cases = I) %>% 
-  mutate(sampPrev = cases/fixed.N0) %>% 
-  mutate(numN = rep(fixed.N0, nrow(.))) %>% 
+ggplot(df, aes(x = time, y = incidence, color = variable))+
+  geom_line() +
+  geom_point(data = myDat, mapping=aes(x = time, y=incidence), color = "black") +
+  labs(title = "Comparing incidence of true and fitted models",
+       x= "time [days]",
+       y= "cases") +
+  scale_color_discrete(labels = c("Fitted","Truth"))
+
+## As expected, the output of the above two plots are about the same
+
+# Estimate R0 with actual data --------------------------------------------
+
+## Import and wrangle dataset
+all.data <- read_csv("new_cases_per_day.csv")
+
+## Extract one outbreak: Avenal State Prison (ASP) Outbreak 1
+fixed.N0 <- 4200  # initial population of prison
+ASP.1.data <- all.data %>%
+  filter(Facility_Outbreak == "Avenal State Prison (ASP) Outbreak 1") %>%
+  select(Date, Daily_New_Cases) %>% 
+  rename(incidence = Daily_New_Cases) %>% 
+  mutate(inc_rate = incidence/fixed.N0) %>% 
+  mutate(time = as.integer(-((Date[1]-1) - Date))) %>%
+  mutate(N = rep(fixed.N0, nrow(.))) %>% 
   filter(time < 100)
 
-prison.data
+ASP.1.data
 
-time.out2 <- seq(0, 264, 1)
+## Define time sequence and initial conditions
+time.out2 <- seq(0, 99, 1)
 init.prison <- init_cond(N0 = fixed.N0)
 
+## Use optim to estimate R0
 prison.estim <- optim(par = c(log_R0 = log(1))
-                    , objFXN
-                    , fixed.params = disease_params()  # defined at top of script
-                    , obsDat = prison.data
-                    , init = init.prison
-                    , tseq = time.out2
-                    , control = list(trace = 3, maxit = 150)
-                    , method = "SANN")
+                      , objFXN
+                      , fixed.params = disease_params()  # defined at top of script
+                      , obsDat = ASP.1.data
+                      , init = init.prison
+                      , tseq = time.out2
+                      , control = list(trace = 3, maxit = 150)
+                      , method = "SANN")
 
 
-## R0 estimate
-R0.prison <- exp(unname(prison.estim$par))  # estimate from prison data
-R0.prison
+## View the R0 estimate
+(R0.prison <- exp(unname(prison.estim$par)))  # estimate from prison data
 
-## Plot SEIX
+## Run the SEIR model with the R0 estimate
+prison.ts <- simEpidemic(init.prison, time.out2, seixc, disease_params(R0 = R0.prison))
 
-prison.ts <- simEpidemic(init.prison, time.out2, seix, disease_params(R0 = R0.prison))
-prison.ts.long <- melt(as.data.table(prison.ts), id.vars = 'time')
+## Visually compare incidence rates of the model and actual data
 
-# (prison.ts.long %>%
-#     filter(variable %in% c('S', 'E', 'I', 'X')) %>%
-#     ggplot()
-#   + aes(x = time, y = value, color = variable, linetype = variable)
-#   + geom_line()
-#   + labs(title = "SEIX model time series",
-#          x = "time [days]",
-#          y = "cases"))
+df <- rbind(ASP.1.data %>% 
+              select(-Date) %>% 
+              mutate(variable = "ASP.1.data"),
+            prison.ts %>% 
+              select(incidence, inc_rate, time, N) %>% 
+              mutate(variable = "prison.ts"))
 
-## Plot prevalence
+ggplot(df, aes(x = time, y = inc_rate, color = variable))+
+  geom_line() +
+  geom_point(data = subset(df, df$variable == "ASP.1.data"), mapping=aes(x = time, y=inc_rate, color = variable)) +
+  labs(title = "Comparing incidence rates of data and model",
+       subtitle = "Avenal State Prison Outbreak 1 data",
+       x= "time [days]",
+       y= "incidence rate") +
+  scale_color_discrete(labels = c("Data","Model"))
+#  theme(text = element_text(size = 18))
 
-(ggplot(prison.ts.long[variable %in% c('PI')])
-  + aes(x = time, y = value)
-  + geom_line(color = "red")
-  + scale_color_discrete(labels = c("Infection","Disease"))
-  + labs(title = "Actual data",
-         x = "time [days]",
-         y = "prevalence")
-  + geom_point(data = prison.data, aes(x = time, y = sampPrev), color = "black")
-  + theme(text = element_text(size =18))
-  + xlim(0,110)
-)
+## The model incidence and actual incidence clearly do not fit well based on
+## visual inspection. The model cannot match the data incidence with two peaks.
+## Let's try to cut the data to only include the initial peak, and then assess
+## model performance.
 
+ASP.1.data.cut <- ASP.1.data %>%
+  filter(time < 60)  # cutoff at day 60 of outbreak
+
+time.out3 <- seq(0, 60, 1)
+
+prison.estim.cut <- optim(par = c(log_R0 = log(1))
+                          , objFXN
+                          , fixed.params = disease_params()  # defined at top of script
+                          , obsDat = ASP.1.data.cut
+                          , init = init.prison
+                          , tseq = time.out3
+                          , control = list(trace = 3, maxit = 150)
+                          , method = "SANN")
+
+
+## View the R0 estimate
+(R0.prison.cut <- exp(unname(prison.estim.cut$par)))  # estimate from prison data
+
+## Run the SEIR model with the R0 estimate
+
+prison.ts.cut <- simEpidemic(init.prison, time.out3, seixc, disease_params(R0 = R0.prison.cut))
+
+## Visually compare incidence rates of the model and actual data
+
+df2 <- rbind(ASP.1.data.cut %>% 
+               select(-Date) %>% 
+               mutate(variable = "ASP.1.data.cut"),
+             prison.ts.cut %>% 
+               select(incidence, inc_rate, time, N) %>% 
+               mutate(variable = "prison.ts.cut"))
+
+ggplot(df2, aes(x = time, y = inc_rate, color = variable))+
+  geom_line() +
+  geom_point(data = subset(df2, df2$variable == "ASP.1.data.cut"), mapping=aes(x = time, y=inc_rate, color = variable)) +
+  labs(title = "Comparing incidence rates of data and model",
+       subtitle = "Avenal State Prison Outbreak 1 data (cut off to one peak)",
+       x= "time [days]",
+       y= "incidence rate") +
+  scale_color_discrete(labels = c("Data","Model"))
+#  theme(text = element_text(size = 18))
+
+## The model is somewhat closer to the data in shape, but still not a good fit.
+## 
+## > Model needs additional processes or compartments?
+## > Initial conditions must be changed?
+## > Errors in the code?
+## > ...
