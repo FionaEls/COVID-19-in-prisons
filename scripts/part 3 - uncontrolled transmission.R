@@ -8,7 +8,7 @@
 
 # Load packages -----------------------------------------------------------
 
-require(boot); require(deSolve); require(ellipse); require(tidyverse); require(data.table)
+require(boot); require(deSolve); require(ellipse); require(tidyverse); require(data.table); require(cowplot)
 
 # Parameters --------------------------------------------------------------
 
@@ -177,25 +177,28 @@ df <- rbind(modDat = modDat %>%
             fitDat = fitDat %>% 
               mutate(variable = "fitDat"))
 
+myDat <- myDat %>% 
+  mutate(variable = "myDat")
+
 ggplot(df, aes(x = time, y = inc_rate, color = variable))+
   geom_line() +
-  geom_point(data = myDat, mapping=aes(x = time, y=samp_inc_rate), color = "black") +
+  geom_point(data = myDat, mapping=aes(x = time, y=samp_inc_rate, color = variable)) +
   #  geom_ribbon(data = myDat, mapping=aes(x = time, y = samp_inc_rate, ymin=lci, ymax=uci), color = NA, fill = "black", alpha = 0.2) +
   labs(title = "Comparing incidence rates of true and fitted models",
-       x= "time [days]",
-       y= "incidence rate") +
-  scale_color_discrete(labels = c("Fitted","Truth"))
+       x= "Time [days]",
+       y= "Incidence rate") +
+  scale_color_manual(labels = c("Fitted","Truth","Data"), values = c("red", "blue", "black"))
 #  theme(text = element_text(size = 18))
 
 ## Visually compare incidence (cases) of fitDat and modDat (the true underlying process)
 
 ggplot(df, aes(x = time, y = incidence, color = variable))+
   geom_line() +
-  geom_point(data = myDat, mapping=aes(x = time, y=incidence), color = "black") +
+  geom_point(data = myDat, mapping=aes(x = time, y=incidence, color = variable)) +
   labs(title = "Comparing incidence of true and fitted models",
-       x= "time [days]",
-       y= "cases") +
-  scale_color_discrete(labels = c("Fitted","Truth"))
+       x= "Time [days]",
+       y= "Cases") +
+  scale_color_manual(labels = c("Fitted","Truth","Data"), values = c("red", "blue", "black"))
 
 ## As expected, the output of the above two plots are about the same
 
@@ -240,21 +243,21 @@ prison.ts <- simEpidemic(init.prison, time.out2, seixc, disease_params(R0 = R0.p
 
 ## Visually compare incidence rates of the model and actual data
 
-df <- rbind(ASP.1.data %>% 
+df2 <- rbind(ASP.1.data %>% 
               select(-Date) %>% 
               mutate(variable = "ASP.1.data"),
             prison.ts %>% 
               select(incidence, inc_rate, time, N) %>% 
               mutate(variable = "prison.ts"))
 
-ggplot(df, aes(x = time, y = inc_rate, color = variable))+
+ggplot(df2, aes(x = time, y = inc_rate, color = variable))+
   geom_line() +
-  geom_point(data = subset(df, df$variable == "ASP.1.data"), mapping=aes(x = time, y=inc_rate, color = variable)) +
+  geom_point(data = subset(df2, df2$variable == "ASP.1.data"), mapping=aes(x = time, y=inc_rate, color = variable)) +
   labs(title = "Comparing incidence rates of data and model",
        subtitle = "Avenal State Prison Outbreak 1 data",
-       x= "time [days]",
-       y= "incidence rate") +
-  scale_color_discrete(labels = c("Data","Model"))
+       x= "Time [days]",
+       y= "Incidence rate") +
+  scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
 #  theme(text = element_text(size = 18))
 
 ## The model incidence and actual incidence clearly do not fit well based on
@@ -286,26 +289,63 @@ prison.ts.cut <- simEpidemic(init.prison, time.out3, seixc, disease_params(R0 = 
 
 ## Visually compare incidence rates of the model and actual data
 
-df2 <- rbind(ASP.1.data.cut %>% 
+df3 <- rbind(ASP.1.data.cut %>% 
                select(-Date) %>% 
                mutate(variable = "ASP.1.data.cut"),
              prison.ts.cut %>% 
                select(incidence, inc_rate, time, N) %>% 
                mutate(variable = "prison.ts.cut"))
 
-ggplot(df2, aes(x = time, y = inc_rate, color = variable))+
+ggplot(df3, aes(x = time, y = inc_rate, color = variable))+
   geom_line() +
-  geom_point(data = subset(df2, df2$variable == "ASP.1.data.cut"), mapping=aes(x = time, y=inc_rate, color = variable)) +
+  geom_point(data = subset(df3, df3$variable == "ASP.1.data.cut"), mapping=aes(x = time, y=inc_rate, color = variable)) +
   labs(title = "Comparing incidence rates of data and model",
        subtitle = "Avenal State Prison Outbreak 1 data (cut off to one peak)",
-       x= "time [days]",
-       y= "incidence rate") +
-  scale_color_discrete(labels = c("Data","Model"))
+       x= "Time [days]",
+       y= "Incidence rate") +
+  scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
 #  theme(text = element_text(size = 18))
 
 ## The model is somewhat closer to the data in shape, but still not a good fit.
-## 
+## Estimated R0 is likely inaccurate.
+##
 ## > Model needs additional processes or compartments?
 ## > Initial conditions must be changed?
 ## > Errors in the code?
 ## > ...
+
+# Plots used in the report ------------------------------------------------
+
+## Figure 1
+ggplot(df, aes(x = time, y = inc_rate, color = variable))+
+  geom_line() +
+  geom_point(data = myDat, mapping=aes(x = time, y=samp_inc_rate, color = variable)) +
+  #  geom_ribbon(data = myDat, mapping=aes(x = time, y = samp_inc_rate, ymin=lci, ymax=uci), color = NA, fill = "black", alpha = 0.2) +
+  labs(x= "Time [days]",
+       y= "Incidence rate") +
+  scale_color_manual(labels = c("Fitted","Truth","Data"), values = c("red", "blue", "black")) +
+  theme(legend.title= element_blank())
+
+## Figure 2
+A <- ggplot(df2, aes(x = time, y = inc_rate, color = variable))+
+  geom_line() +
+  geom_point(data = subset(df2, df2$variable == "ASP.1.data"), mapping=aes(x = time, y=inc_rate, color = variable)) +
+  labs(x= "Time [days]",
+       y= "Incidence rate") +
+  scale_color_manual(labels = c("Data","Model"), values = c("red", "blue")) +
+  theme(legend.position = "bottom", legend.title= element_blank())
+
+B <- ggplot(df3, aes(x = time, y = inc_rate, color = variable))+
+  geom_line() +
+  geom_point(data = subset(df3, df3$variable == "ASP.1.data.cut"), mapping=aes(x = time, y=inc_rate, color = variable)) +
+  labs(x= "Time [days]",
+       y= "Incidence rate") +
+  scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
+
+AB <- plot_grid(A+theme(legend.position = "none"), 
+                B + theme(legend.position = "none"), 
+                labels = "AUTO", ncol=2)
+
+legend <- get_legend(A)
+
+plot_grid(AB, legend, ncol=1,rel_heights = c(0.95, 0.05))
