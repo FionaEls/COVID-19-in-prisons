@@ -417,7 +417,7 @@ legend("topleft",
 
 # Plots used in the report ------------------------------------------------
 
-## Figure (simulated data)
+## Figure 1 (simulated data)
 ggplot(df, aes(x = time, y = incidence, color = variable))+
   geom_line() +
   geom_point(data = myDat, mapping=aes(x = time, y=incidence, color = variable)) +
