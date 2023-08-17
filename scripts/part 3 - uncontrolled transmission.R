@@ -8,7 +8,7 @@
 
 # Load packages -----------------------------------------------------------
 
-require(boot); require(deSolve); require(ellipse); require(tidyverse); require(cowplot)
+require(boot); require(deSolve); require(ellipse); require(tidyverse)
 
 # Parameters --------------------------------------------------------------
 
@@ -300,7 +300,7 @@ ASP.1.data <- all.data %>%
   select(Date, Daily_New_Cases) %>% 
   rename(incidence = Daily_New_Cases) %>% 
   mutate(time = seq(0,nrow(.)-1)) %>%
-  filter(time < 100)
+  filter(time < 60)  # limit to one peak
 
 ASP.1.data
 
@@ -316,7 +316,8 @@ prison.estim <- optim(par = c(log_R0 = log(1), log_N = log(1000))
                       , init = init.prison
                       , tseq = time.out2
                       , control = list(trace = 3, maxit = 150)
-                      , method = "SANN")
+                      , method = "SANN"
+                      , hessian = T)
 
 ## Feed the last parameters of SANN in as the first values of Nelder-Mead
 # prison.estim <- optim(par = optim.vals$par
@@ -329,9 +330,13 @@ prison.estim <- optim(par = c(log_R0 = log(1), log_N = log(1000))
 #                     , method = "Nelder-Mead"
 #                     , hessian = T)
 
-## View the R0 estimate
-estimParms <- exp(unname(prison.estim$par))
+MLEfits <- prison.estim$par
+log_R0.fit <- MLEfits["log_R0"]
+log_N.fit <- MLEfits["log_N"]
+estimParms <- exp(unname(MLEfits))
 names(estimParms) <- c('R0', 'N')
+
+## View the R0 estimate
 estimParms
 
 ## Run the SEIR model with the R0 estimate
@@ -356,81 +361,13 @@ x= "Time [days]",
 y= "Cases") +
   scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
 
-## The model incidence and actual incidence clearly do not fit well based on
-## visual inspection. The model cannot match the data incidence with two peaks,
-## and is only fitting one peak.
-## Let's try to cut the data to only include the initial peak, and then assess
-## model performance.
-
-# Estimate with one-peak data ---------------------------------------------
-
-ASP.1.data.cut <- ASP.1.data %>%
-  filter(time < 60)  # cutoff at day 60 of outbreak
-
-time.out3 <- seq(0, max(ASP.1.data.cut$time), 1)
-
-prison.estim.cut <- optim(par = c(log_R0 = log(1), log_N = log(1000))
-                          , objFXN
-                          , fixed.params = disease_params()
-                          , obsDat = ASP.1.data.cut
-                          , init = init.prison
-                          , tseq = time.out3
-                          , control = list(trace = 3, maxit = 150)
-                          , method = "SANN"
-                          , hessian = T)
-
-## Feed the last parameters of SANN in as the first values of Nelder-Mead
-# prison.estim.cut <- optim(par = optim.vals$par
-#                     , objFXN
-#                     , fixed.params = disease_params()
-#                     , obsDat = ASP.1.data.cut
-#                     , init = init.prison
-#                     , tseq = time.out3
-#                     , control = list(trace = 3, maxit = 800, reltol = 10^-7)
-#                     , method = "Nelder-Mead"
-#                     , hessian = T)
-
-## Store estimates
-MLEfits <- prison.estim.cut$par
-log_R0.fit <- MLEfits["log_R0"]
-log_N.fit <- MLEfits["log_N"]
-estimParms2 <- exp(unname(MLEfits))
-names(estimParms2) <- c('R0', 'N')
-
-## See final estimates
-estimParms2
-
-## Run the SEIR model with the R0 estimate
-
-prison.ts.cut <- simEpidemic(init.prison, time.out3, seixc, disease_params(R0 = estimParms2['R0'], N = estimParms2['N']))
-
-## Visually compare incidence of the model and actual data
-
-df3 <- rbind(ASP.1.data.cut %>% 
-               select(-Date) %>% 
-               mutate(variable = "ASP.1.data.cut"),
-             prison.ts.cut %>% 
-               select(incidence, time) %>% 
-               mutate(variable = "prison.ts.cut"))
-
-ggplot(df3, aes(x = time, y = incidence, color = variable))+
-  geom_line() +
-  geom_point(data = subset(df3, df3$variable == "ASP.1.data.cut"), mapping=aes(x = time, y=incidence, color = variable)) +
-  labs(title = "Comparing incidence of data and model",
-       subtitle = paste("Avenal State Prison Outbreak 1 data (cut off to one peak)
-Estimates: R0 = ", round(estimParms2['R0'],2), ", N = ", round(estimParms2['N'],2)),
-x= "Time [days]",
-y= "Cases") +
-  scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
-
-## The model is somewhat closer to the data in shape
 ## Are the estimated R0 and N values reasonable?
 
 # Contour plots for actual data -------------------------------------------
 ## We will use the estimated R0 and N from the ASP1 data restricted to one peak
 
 ## Generate contour plots with the Hessian ##
-fisherInfMatrix <- solve(prison.estim.cut$hessian)
+fisherInfMatrix <- solve(prison.estim$hessian)
 
 ## Create a sequence of R0 and N values for the grid
 R0.seq <- exp(seq(log_R0.fit-1, log_R0.fit+1, l = res))
@@ -439,33 +376,33 @@ N.seq <- exp(seq(log_N.fit-1, log_N.fit + 1, l = res))
 ## Initialize plot of parameters
 plot(1,1, type = 'n', log = 'xy',
      # xlim = range(R0.seq), ylim = range(N.seq),
-     xlim = c(7.50,7.55), ylim = c(7980,8000),  # use these limits to zoom-in
+     xlim = c(7.18,7.20), ylim = c(7957,7977),  # use these limits to zoom-in
      las = 1,
      xlab = expression(R0), ylab = expression(N),
      main = "-log(likelihood) contours", bty = "n")
 ## Add MLE to the plot
-points(estimParms2['R0'], estimParms2['N'], pch = 16, cex = 2, col = 'black')
+points(estimParms['R0'], estimParms['N'], pch = 16, cex = 2, col = 'black')
 ## Add 95% contour ellipse from Hessian
 lines(exp(ellipse(fisherInfMatrix, centre = MLEfits, level = .95)))
 legend("topleft", c('MLE', '95% Confidence Region'), lty = c(NA, 1), pch = c(16, NA),
        col = c('black', 'black'), bg='white', bty = 'n')
 
 ## Generate contour plots with likelihood profiles ##
-mat <- outer(R0.seq, N.seq, objXR0_NVEC, init = init_cond(), tseq=time.out, obsDat=myDat)
+mat <- outer(R0.seq, N.seq, objXR0_NVEC, init = init_cond(), tseq=time.out, obsDat=ASP.1.data)
 
-ml.val <- prison.estim.cut$value
+ml.val <- prison.estim$value
 conf.cutoff <- ml.val + qchisq(.95,2)/2
 
 ## Show likelihood contours
 par(cex = 1.2)
 plot(1,1, type = 'n', log = 'xy',
      xlim = range(R0.seq), ylim = range(N.seq),
-     # xlim = c(7.50,7.55), ylim = c(7980,8000),  # use these limits to zoom-in
+     # xlim = c(7.18,7.20), ylim = c(7957,7977),  # use these limits to zoom-in
      xlab = expression(R0), ylab = expression(N),
      main = "-log(likelihood) contours", bty = "n")
 .filled.contour(R0.seq, N.seq, mat, levels = seq(min(mat), max(mat), l=20), col = topo.colors(20))
 ## Add contour for 95% CI from likelihood ratio
-## This comes out really large!
+## This isn't showing up (?)
 contour(R0.seq, N.seq, mat, levels = c(conf.cutoff),
         col = "black", lwd = 2, labels = "", labcex = .2, add = T)
 ## Add contour for 95% CI from Hessian
@@ -480,7 +417,7 @@ legend("topleft",
 
 # Plots used in the report ------------------------------------------------
 
-## Figure 1
+## Figure (simulated data)
 ggplot(df, aes(x = time, y = incidence, color = variable))+
   geom_line() +
   geom_point(data = myDat, mapping=aes(x = time, y=incidence, color = variable)) +
@@ -490,26 +427,11 @@ ggplot(df, aes(x = time, y = incidence, color = variable))+
   scale_color_manual(labels = c("Fitted","Truth","Data"), values = c("red", "blue", "black")) +
   theme(legend.title= element_blank())
 
-## Figure 2
-A <- ggplot(df2, aes(x = time, y = incidence, color = variable))+
+## Figure 2 (actual data)
+
+ggplot(df2, aes(x = time, y = incidence, color = variable))+
   geom_line() +
   geom_point(data = subset(df2, df2$variable == "ASP.1.data"), mapping=aes(x = time, y=incidence, color = variable)) +
   labs(x= "Time [days]",
        y= "Cases") +
-  scale_color_manual(labels = c("Data","Model"), values = c("red", "blue")) +
-  theme(legend.position = "bottom", legend.title= element_blank())
-
-B <- ggplot(df3, aes(x = time, y = incidence, color = variable))+
-  geom_line() +
-  geom_point(data = subset(df3, df3$variable == "ASP.1.data.cut"), mapping=aes(x = time, y=incidence, color = variable)) +
-  labs(x= "Time [days]",
-       y= "Cases") +
   scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
-
-AB <- plot_grid(A+theme(legend.position = "none"), 
-                B + theme(legend.position = "none"), 
-                labels = "AUTO", ncol=2)
-
-legend <- get_legend(A)
-
-plot_grid(AB, legend, ncol=1,rel_heights = c(0.95, 0.05))
