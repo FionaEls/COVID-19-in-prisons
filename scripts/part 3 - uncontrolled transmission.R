@@ -404,7 +404,7 @@ estimParms2
 
 prison.ts.cut <- simEpidemic(init.prison, time.out3, seixc, disease_params(R0 = estimParms2['R0'], N = estimParms2['N']))
 
-## Visually compare incidence rates of the model and actual data
+## Visually compare incidence of the model and actual data
 
 df3 <- rbind(ASP.1.data.cut %>% 
                select(-Date) %>% 
@@ -420,7 +420,7 @@ ggplot(df3, aes(x = time, y = incidence, color = variable))+
        subtitle = paste("Avenal State Prison Outbreak 1 data (cut off to one peak)
 Estimates: R0 = ", round(estimParms2['R0'],2), ", N = ", round(estimParms2['N'],2)),
 x= "Time [days]",
-y= "Incidence rate") +
+y= "Cases") +
   scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
 
 ## The model is somewhat closer to the data in shape
@@ -486,7 +486,7 @@ ggplot(df, aes(x = time, y = incidence, color = variable))+
   geom_point(data = myDat, mapping=aes(x = time, y=incidence, color = variable)) +
   #  geom_ribbon(data = myDat, mapping=aes(x = time, y = samp_inc_rate, ymin=lci, ymax=uci), color = NA, fill = "black", alpha = 0.2) +
   labs(x= "Time [days]",
-       y= "cases") +
+       y= "Cases") +
   scale_color_manual(labels = c("Fitted","Truth","Data"), values = c("red", "blue", "black")) +
   theme(legend.title= element_blank())
 
@@ -495,7 +495,7 @@ A <- ggplot(df2, aes(x = time, y = incidence, color = variable))+
   geom_line() +
   geom_point(data = subset(df2, df2$variable == "ASP.1.data"), mapping=aes(x = time, y=incidence, color = variable)) +
   labs(x= "Time [days]",
-       y= "Incidence rate") +
+       y= "Cases") +
   scale_color_manual(labels = c("Data","Model"), values = c("red", "blue")) +
   theme(legend.position = "bottom", legend.title= element_blank())
 
@@ -503,7 +503,7 @@ B <- ggplot(df3, aes(x = time, y = incidence, color = variable))+
   geom_line() +
   geom_point(data = subset(df3, df3$variable == "ASP.1.data.cut"), mapping=aes(x = time, y=incidence, color = variable)) +
   labs(x= "Time [days]",
-       y= "Incidence rate") +
+       y= "Cases") +
   scale_color_manual(labels = c("Data","Model"), values = c("red", "blue"))
 
 AB <- plot_grid(A+theme(legend.position = "none"), 
