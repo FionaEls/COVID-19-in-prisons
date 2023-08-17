@@ -306,7 +306,7 @@ ASP.1.data
 
 ## Define time sequence and initial conditions
 time.out2 <- seq(0, max(ASP.1.data$time), 1)
-init.prison <- init_cond(initI = 25)
+init.prison <- init_cond(initI = ASP.1.data$incidence[1])
 
 ## Use optim to estimate R0
 prison.estim <- optim(par = c(log_R0 = log(1), log_N = log(1000))
@@ -388,7 +388,7 @@ legend("topleft", c('MLE', '95% Confidence Region'), lty = c(NA, 1), pch = c(16,
        col = c('black', 'black'), bg='white', bty = 'n')
 
 ## Generate contour plots with likelihood profiles ##
-mat <- outer(R0.seq, N.seq, objXR0_NVEC, init = init_cond(), tseq=time.out, obsDat=ASP.1.data)
+mat <- outer(R0.seq, N.seq, objXR0_NVEC, init = init.prison, tseq=time.out2, obsDat=ASP.1.data)
 
 ml.val <- prison.estim$value
 conf.cutoff <- ml.val + qchisq(.95,2)/2
@@ -396,13 +396,15 @@ conf.cutoff <- ml.val + qchisq(.95,2)/2
 ## Show likelihood contours
 par(cex = 1.2)
 plot(1,1, type = 'n', log = 'xy',
-     xlim = range(R0.seq), ylim = range(N.seq),
-     # xlim = c(7.18,7.20), ylim = c(7957,7977),  # use these limits to zoom-in
+     # xlim = range(R0.seq), ylim = range(N.seq),
+     xlim = c(7.182,7.190), ylim = c(7957,7977),  # use these limits to zoom-in
+     # xlim = c(7.186, 7.187), ylim = c(7965,7966),   # use these limits to zoom-in further
      xlab = expression(R0), ylab = expression(N),
      main = "-log(likelihood) contours", bty = "n")
 .filled.contour(R0.seq, N.seq, mat, levels = seq(min(mat), max(mat), l=20), col = topo.colors(20))
 ## Add contour for 95% CI from likelihood ratio
-## This isn't showing up (?)
+## This comes out extremely small
+## Change xlim and ylim to zoom-in further
 contour(R0.seq, N.seq, mat, levels = c(conf.cutoff),
         col = "black", lwd = 2, labels = "", labcex = .2, add = T)
 ## Add contour for 95% CI from Hessian
