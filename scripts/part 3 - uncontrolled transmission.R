@@ -350,7 +350,7 @@ ggplot(df2, aes(x = time, y = incidence, color = variable))+
   geom_line() +
   geom_point(data = subset(df2, df2$variable == "ASP.1.data"), mapping=aes(x = time, y=incidence, color = variable)) +
   labs(title = "Comparing incidence of data and model",
-       subtitle = paste("Avenal State Prison Outbreak 1 data (cut off to one peak)
+       subtitle = paste("Avenal State Prison Outbreak 1 data
 Estimates: R0 = ", round(estimParms['R0'],2), ", N = ", round(estimParms['N'],2)),
 x= "Time [days]",
 y= "Cases") +
